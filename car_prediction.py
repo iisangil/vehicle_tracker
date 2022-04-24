@@ -78,28 +78,31 @@ def find_best_bb(old_frame, new_frame, x, y, x1, y1, gamma = 0.03):
 
     return best_offset    
 
-iter = 0
-x, y, x1, y1 = 330, 700, 810, 1050
 
-while True:
+if "__name__" == "__main__":
 
-    ret, frame = cap.read()
-    if ret is False:
-        break
+    iter = 0
+    x, y, x1, y1 = 330, 700, 810, 1050
 
-    if (iter > 0):
-        x, y, x1, y1 = find_best_bb(old_frame, frame, x, y, x1, y1)
+    while True:
 
-    old_frame = frame
+        ret, frame = cap.read()
+        if ret is False:
+            break
 
-    #predicted = kf.predict(cx, cy)
-    cv2.rectangle(frame, (x, y), (x1, y1), (255, 0, 0), 4)
-    #cv2.rect(frame, (predicted[0], predicted[1]), 20, (255, 0, 0), 4)
+        if (iter > 0):
+            x, y, x1, y1 = find_best_bb(old_frame, frame, x, y, x1, y1)
 
-    cv2.imshow("Frame", frame)
-    key = cv2.waitKey(3000)
+        old_frame = frame
 
-    if key == 27:
-        break
-    
-    iter += 1
+        #predicted = kf.predict(cx, cy)
+        cv2.rectangle(frame, (x, y), (x1, y1), (255, 0, 0), 4)
+        #cv2.rect(frame, (predicted[0], predicted[1]), 20, (255, 0, 0), 4)
+
+        cv2.imshow("Frame", frame)
+        key = cv2.waitKey(3000)
+
+        if key == 27:
+            break
+        
+        iter += 1
