@@ -1,9 +1,8 @@
 import cv2
 import numpy as np
-import sys
+import sys, getopt
 from py import process
 from kalmanfilter import KalmanFilter
-
 
 def normalized_cross_correlation(ch1, ch2):
     """
@@ -21,7 +20,7 @@ def normalized_cross_correlation(ch1, ch2):
 # _____________________________________________________
 
 # find best bb in new frame that matches old frame
-def find_best_bb(old_frame, new_frame, x, y, x1, y1, gamma = 0.03):
+def find_best_bb(old_frame, new_frame, x, y, x1, y1, gamma=0.03):
     ref_img = old_frame[y:y1+1, x:x1+1]
 
     W = old_frame.shape[1]
@@ -79,8 +78,18 @@ def find_best_bb(old_frame, new_frame, x, y, x1, y1, gamma = 0.03):
 
     return best_offset    
 
-
 if __name__ == "__main__":
+    argList = sys.argv[1:]
+    options = "g:"
+    long_options = ["gamma="]
+
+    arguments, _ = getopt.getopt(argList, options, long_options)
+    for arg, val in arguments:
+        if arg == "--gamma":
+            gamma = val
+        elif arg == "-g":
+            gamma = float(val[1:])
+    
     vid_name = input("Enter video file:\n")
     mode = input("Play frames while processing? y or n\n")
 
@@ -115,7 +124,7 @@ if __name__ == "__main__":
             break
 
         if iter > 0:
-            x, y, x1, y1 = find_best_bb(old_frame, frame, x, y, x1, y1)
+            x, y, x1, y1 = find_best_bb(old_frame, frame, x, y, x1, y1, gamma=gamma)
 
             cx = int((x + x1) / 2)
             cy = int((y + y1) / 2)
