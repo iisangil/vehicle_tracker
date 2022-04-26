@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import sys, getopt
-from py import process
 from kalmanfilter import KalmanFilter
 
 def normalized_cross_correlation(ch1, ch2):
@@ -58,27 +57,28 @@ def find_best_bb(old_frame, new_frame, x, y, x1, y1, gamma=0.03):
             if edge_y > max_y:
                 edge_y = max_y
 
-            try:
-                temp_ref = cv2.resize(new_frame[j:edge_y, i:edge_x], dim, interpolation=cv2.INTER_AREA)
-            except:
-                print("error resizing")
-            else:
-                # compute correlation
-                corr = normalized_cross_correlation(temp_ref, ref_img)
+            temp_ref = new_frame[j:edge_y+1, i:edge_x+1]
+            if temp_ref.shape != ref_img.shape:
+                try:
+                    temp_ref = cv2.resize(new_frame[j:edge_y+1, i:edge_x+1], dim, interpolation=cv2.INTER_AREA)
+                except:
+                    print("error resizing")
+                    continue
+            # compute correlation
+            corr = normalized_cross_correlation(temp_ref, ref_img)
 
-                # update best correlation and bounding box
-                if (corr > best_correlation):
-                    best_correlation = corr
+            # update best correlation and bounding box
+            if (corr > best_correlation):
+                best_correlation = corr
 
-                    x_diff = abs(i - x)
-                    y_diff = abs(j - y)
-
-                    best_offset = (i + x_diff * 3, j + y_diff * 3, x1 + x_diff * 3, y1 - y_diff * 3)
+                best_offset = (i, j, i + W_bb, j + H_bb)
                         
 
     return best_offset    
 
 if __name__ == "__main__":
+    gamma = 0.03
+
     argList = sys.argv[1:]
     options = "g:"
     long_options = ["gamma="]
@@ -119,6 +119,7 @@ if __name__ == "__main__":
 
     while True:
         ret, frame = cap.read()
+
         if ret is False:
             print(f"Completed processing {iter}/{num_frames} frames.")
             break
@@ -142,6 +143,10 @@ if __name__ == "__main__":
 
             predicted = np.array([px, py, px1, py1])
             coordinates.append(predicted)
+        else:
+            cx = int((x + x1) / 2)
+            cy = int((y + y1) / 2)
+            kf.predict(cx, cy)
 
         if iter % 7 == 0 and iter != 0:
             print(f"Processing frame {iter+1}/{num_frames}...")
